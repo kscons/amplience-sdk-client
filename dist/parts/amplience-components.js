@@ -1,4 +1,4 @@
-// amplience-sdk-client v{{VERSION}}
+// amplience-sdk-client v0.1.0
 (function ( $ ) {
     $.widget( "amp.ampStack", {
         // Default options.
@@ -2954,7 +2954,7 @@
                             img.src = this.element.attr('src');
                             var $loading = $('<div class="amp-loading"></div>');
                             this.$parent.append($loading);
-                            this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms);
+                            this.zoomArea = new zoomArea(this.element, this.$parent, size, this.options.transforms, this.options);
 
                             img.onload = function(){
                                 $loading.remove();
@@ -3347,7 +3347,8 @@
     };
 
 
-    var zoomArea = function($source,$area,originalSize,transforms) {
+    var zoomArea = function($source,$area,originalSize,transforms, options) {
+        this.options = options;
         this.animating = false;
         this.transforms = transforms;
         this.initialSrc = $source[0].src;
@@ -3450,7 +3451,7 @@
                 cb();
             }
             this.animating = false;
-        },this),600);
+        },this),1000);
     };
 
      zoomArea.prototype.updateImageSrc = function(scaleIncreased){
@@ -3533,14 +3534,25 @@
         if(size.x == 0 || size.y ==0) {
             src='';
         }
+        self.$preloader = new Image();
+        self._preloaderImgLoaded = true;
         self.$preloader.setAttribute('src', src);
 
     };
     zoomArea.prototype.setImage = function() {
         var self = this;
-        var previousSrc = self.$zoomed[0].src;
-        self.$zoomed.attr('src', self.$preloader.src);
+        var previousSrc = self.$zoomed.attr('src');
         self.$zoomedClone.attr('src', previousSrc);
+
+        if(self.$preloader.complete && self.$preloader.naturalWidth && self.$preloader.naturalWidth > 0){
+        self.$zoomed.attr('src', self.$preloader.src);
+        }
+
+        else{
+            self.$preloader.onload = function(){
+                self.$zoomed.attr('src', self.$preloader.src);
+            };
+        }
     };
 
 
