@@ -120,7 +120,7 @@
         },
         load:function(){
             this._setupZoomArea().then($.proxy(function(area){
-            this.zoomArea.allowClone = true;
+                this.zoomArea.allowClone = true;
                 area.setScale(this.options.zoom);
             },this))
         },
@@ -442,7 +442,7 @@
         var x = Math.abs(touches[0].pageX-touches[1].pageX),
             y = Math.abs(touches[0].pageY-touches[1].pageY);
         return Math.sqrt(
-                (x * x) + (y * y)
+            (x * x) + (y * y)
         );
     };
 
@@ -530,6 +530,8 @@
     var zoomArea = function($source,$area,originalSize,transforms, options) {
         this.options = options;
         this.animating = false;
+        this._allowChangeClone = true;
+        this.isFF = navigator.userAgent.toLowerCase().search("firefox") > -1;
         this.transforms = transforms;
         this.initialSrc = $source[0].src;
         this.scale = 1;
@@ -631,10 +633,10 @@
                 cb();
             }
             this.animating = false;
-        },this),1000);
+        },this),this.isFF ? 1000 : 600);
     };
 
-     zoomArea.prototype.updateImageSrc = function(scaleIncreased){
+    zoomArea.prototype.updateImageSrc = function(scaleIncreased){
         var self = this;
         if(!scaleIncreased || !self.allowClone || !self._preloaderImgLoaded){
             return false;
@@ -682,7 +684,7 @@
             });
         } else {
             this.animate(this.newSize, this.getPixPos(), function(){
-                    self.updateImageSrc(scaleIncreased);
+                self.updateImageSrc(scaleIncreased);
             });
         }
         this.scale = scale;
@@ -721,18 +723,35 @@
     };
     zoomArea.prototype.setImage = function() {
         var self = this;
+        var loaded;
         var previousSrc = self.$zoomed.attr('src');
-        self.$zoomedClone.attr('src', previousSrc);
+
+        if(self._allowChangeClone){
+            self.$zoomedClone.attr('src', previousSrc);
+        }
 
         if(self.$preloader.complete && self.$preloader.naturalWidth && self.$preloader.naturalWidth > 0){
-        self.$zoomed.attr('src', self.$preloader.src);
+            if(loaded){
+                return;
+            }
+
+            setTimeout(function(){
+                self.$zoomed.attr('src', self.$preloader.src);
+            }, self.isFF ? 1000 : 10);
+            loaded = true;
         }
 
         else{
             self.$preloader.onload = function(){
+                if(loaded){
+                    return;
+                }
                 self.$zoomed.attr('src', self.$preloader.src);
+                loaded = true;
             };
         }
+
+        self._allowChangeClone = false;
     };
 
 
