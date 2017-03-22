@@ -3670,7 +3670,7 @@
                 if (self.options.plugins && self.options.plugins['videoJsResolutionSwitcher'] && self.options.plugins['videoJsResolutionSwitcher'].default) {
                     self._player.on('ready', function () {
                         self._player.currentResolution(self.options.plugins['videoJsResolutionSwitcher'].default);
-                        self._allowResolutionChange = false;
+                        self._allowResolutionChange = true;
                     });
                     self._player.on('resolutionchange', function () {
                         if (self._player.paused()) {
